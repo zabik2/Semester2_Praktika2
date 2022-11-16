@@ -40,27 +40,28 @@ void MainWindow::on_actionEinlesen_triggered()
 
     for (RentalCarReservation* obj : TravelAgency1.RentalCarList)
         delete obj;
-    TravelAgency1.RentalCarList.clear();
+    TravelAgency1.RentalCarList.clear(); // clean heap, for multiple file loads
 
     QString fileName = QFileDialog::getOpenFileName(this, "Select a file to open...", QDir::currentPath()); // Öffne File in der lokalen Verzeichniss
 
     TravelAgency1.readFile(fileName.toStdString());
+
     float FlightNum = 0, FlightCost = 0, CarNum = 0, CarCost = 0, HotelNum = 0, HotelCost = 0;
 
-    for (int i = 0; i < (int)TravelAgency1.FlightsList.size(); i++){
+    for (int i = 0; i < (int)TravelAgency1.FlightsList.size(); i++){        // Gets total cost
             FlightCost += TravelAgency1.FlightsList[i]->getPrice();
             FlightNum++;
         }
-        for (int i = 0; i < (int)TravelAgency1.RentalCarList.size(); i++){
+    for (int i = 0; i < (int)TravelAgency1.RentalCarList.size(); i++){
             CarCost += TravelAgency1.RentalCarList[i]->getPrice();
             CarNum++;
         }
-        for (int i = 0; i < (int)TravelAgency1.HotelList.size(); i++){
+    for (int i = 0; i < (int)TravelAgency1.HotelList.size(); i++){
             HotelCost += TravelAgency1.HotelList[i]->getPrice();
             HotelNum++;
         }
 
-    std::ostringstream streamObjFK; // Convert double to string with precission
+    std::ostringstream streamObjFK; // Convert double to string with precission (required to avoid extra digits)
     streamObjFK<<std::fixed;
     streamObjFK<<std::setprecision(2);
     streamObjFK<<FlightCost;
@@ -101,7 +102,7 @@ void MainWindow::on_actionEinlesen_triggered()
             ". Es wurden " + HotelNumStr + " Hotels gebucht. Diese Kosten " + HotelKostenStr + ".";
 
 
-    QMessageBox::information(this, QObject::tr("QMessageBox::information()"), QObject::tr(BuchungenImPopUp.c_str()));       // Pop up für Info
+    QMessageBox::information(this, QObject::tr("QMessageBox::information()"), QObject::tr(BuchungenImPopUp.c_str()));       // Pop up für alle Buchungen
 
 
     for (int i = 0; i < (int)TravelAgency1.BookingList.size(); i++){
@@ -126,7 +127,7 @@ void MainWindow::on_actionEinlesen_triggered()
                     " am " + TravelAgency1.FlightsList[j]->getFromDate() + ". Preis: " + FoundFlightsPriceStr + " Euro ";
 
             QString QstringListAusgabe = QString::fromStdString(AusgabeList);
-            ui->listWidget->addItem(QstringListAusgabe);
+            ui->listWidget->addItem(QstringListAusgabe);                        // adds items to our list widget
                    }
         }
         for (int j = 0; j < (int)TravelAgency1.RentalCarList.size(); j++){
@@ -182,6 +183,7 @@ void MainWindow::on_actionEinlesen_triggered()
                    }
         }
 
+
     }
 
 }
@@ -196,19 +198,13 @@ void MainWindow::on_actionAusw_hlen_triggered()
     QDate QDateInstance;    //QDAte.tostring funktioniert nur mit einer Instanz :(
 
     bool ok, Found = false;
-    int SearchedBooking = QInputDialog::getInt(this, tr("QInputDialog::getInt()"),
+    int SearchedBooking = QInputDialog::getInt(this, tr("QInputDialog::getInt()"),      // default value, min, max, increment
                                  tr("Percentage:"), 25, 0, 100, 1, &ok);
 
     if(ok){
         for (int i = 0; i < (int)TravelAgency1.FlightsList.size(); i++){
             if (SearchedBooking == TravelAgency1.FlightsList[i]->getId()){
                 ui->ID_Output->setText(QString::number(TravelAgency1.FlightsList[i]->getId()));
-               /* QDateEdit * dateEdit = new QDateEdit(QDateInstance);
-                            dateEdit->setDate(QDate::fromString(QString::fromStdString(TravelAgency1.FlightsList[i]->getFromDate()), "yyyy-MM-dd"));
-
-
-                            QDateEdit(QDateInstance, this);*/
-
                 QDateInstance = QDateInstance.fromString(QString::fromStdString(TravelAgency1.FlightsList[i]->getFromDate()),"yyyyMMdd");
                 ui->StartD_Output->setText(QDateInstance.toString());
                 QDateInstance = QDateInstance.fromString(QString::fromStdString(TravelAgency1.FlightsList[i]->getToDate()), "yyyyMMdd");
@@ -218,7 +214,7 @@ void MainWindow::on_actionAusw_hlen_triggered()
                 ui->Fluggesellschaft_Output->setText(QString::fromStdString(TravelAgency1.FlightsList[i]->getAirline()));
                 ui->Preis_Output->setText(QString::number(TravelAgency1.FlightsList[i]->getPrice()));
 
-                ui->tabWidget->setCurrentIndex(0);
+                ui->tabWidget->setCurrentIndex(0);      // Go to Tabwidget 0
                 Found = true;
                 break;
             }
@@ -235,7 +231,7 @@ void MainWindow::on_actionAusw_hlen_triggered()
                     ui->AbholOrt_Car_Output->setText(QString::fromStdString(TravelAgency1.RentalCarList[i]->getPickupLocation()));
                     ui->ZielOrt_Car_Output->setText(QString::fromStdString(TravelAgency1.RentalCarList[i]->getReturnLocation()));
                     ui->Firma_Car_Output->setText(QString::fromStdString(TravelAgency1.RentalCarList[i]->getCompany()));
-                    ui->tabWidget->setCurrentIndex(1);
+                    ui->tabWidget->setCurrentIndex(1);      // Go to Tabwidget 1
                     Found = true;
                     break;
                 }
@@ -270,15 +266,6 @@ void MainWindow::on_listWidget_itemClicked(QListWidgetItem *item)
 
     std::string IDFromClick;
     int IdTotalFound;
-
-    /*for (int i = 0; i < (int)str.size(); i++){
-        while (IdSize < 2){
-        if (str[i]>='0' && str[i]<='9'){
-            IDFromClick.push_back(str[i]);
-            IdSize++;
-        }
-        }
-    }*/
 
     if(str[0] == 'F'){
         IDFromClick.push_back(str[12]);
@@ -359,22 +346,23 @@ dialog.setDefaultSuffix(".json");
 dialog.setAcceptMode(QFileDialog::AcceptSave);
 if (dialog.exec()) {
     const auto fn = dialog.selectedFiles().front();      // a QStringList is returned but it always contains a single file
- json Flugbuchungen;
- json FlugArray;
 
- json CarBuchungen;
- json CarArray;
+    json Flugbuchungen;
+    json FlugArray;
 
- json HotelsBuchungen;
- json HotelsArray;
+    json CarBuchungen;
+    json CarArray;
 
- json gesamteDatei;
+    json HotelsBuchungen;
+    json HotelsArray;
+
+    json gesamteDatei;
 
 
 
 
     for (auto Flights:TravelAgency1.FlightsList){
-        json FlightsJson;
+        json FlightsJson;       // Lowest Json level
             FlightsJson["airline"] = Flights->getAirline();
             FlightsJson["fromDate"] = Flights->getFromDate();
             FlightsJson["fromDest"] = Flights->getFromDestination();
@@ -382,10 +370,10 @@ if (dialog.exec()) {
             FlightsJson["price"] = Flights->getPrice();
             FlightsJson["toDate"] = Flights->getToDate();
             FlightsJson["toDest"] = Flights->getToDestination();
-            FlugArray.push_back(FlightsJson);
-            Flugbuchungen["Fluege"] = FlugArray;
+            FlugArray.push_back(FlightsJson);   // pushback to create new level
+            Flugbuchungen["Fluege"] = FlugArray;    // higher Json level
     }
-    gesamteDatei.push_back(Flugbuchungen);
+    gesamteDatei.push_back(Flugbuchungen);  // get all the data into file
 
     for (auto Cars:TravelAgency1.RentalCarList){
          json CarsJson;
@@ -416,7 +404,7 @@ if (dialog.exec()) {
 
     std::ofstream outputStream(fn.toStdString());
     if (!outputStream) std::cerr << "JSON Datei konnte nicht geoeffnet werden";
-    outputStream << gesamteDatei.dump(4);
+    outputStream << gesamteDatei.dump(4);       // dump is for distance between levels
     outputStream.close();
 
 }
